@@ -1,0 +1,368 @@
+#include <cstdlib>
+#include <stdio.h>
+#include "../include/ql.h"
+//#include <random>		/* mt19937, uniform_int_distribution */
+
+ReinforcementLearning::ReinforcementLearning(unsigned int tamP2, unsigned int tamP1, unsigned int tamAcao)
+{
+	srand (time(NULL));
+  	NUM_ACTION = tamAcao;
+	// Set up sizes. (HEIGHT x WIDTH)
+    	qValue2p.resize(tamP2);
+    	for (unsigned int j = 0; j < tamP2; ++j)
+      		qValue2p[j].resize(tamP1);
+
+	p2_size = tamP2;
+	p1_size = tamP1;
+}
+
+ReinforcementLearning::ReinforcementLearning(unsigned int tamP3, unsigned int tamP2, unsigned int tamP1, unsigned int tamAcao)
+{
+	srand (time(NULL));
+	NUM_ACTION = tamAcao;
+
+	  	qValue3p.resize(tamP3);
+	  	for (unsigned int j = 0; j < tamP3; ++j) 
+		{
+			qValue3p[j].resize(tamP2);
+			for (unsigned int k = 0; k < tamP2; ++k)
+		  		qValue3p[j][k].resize(tamP1);
+	  	}
+	p3_size = tamP3;
+	p2_size = tamP2;
+	p1_size = tamP1;
+}
+
+ReinforcementLearning::ReinforcementLearning(unsigned int tamP4, unsigned int tamP3, unsigned int tamP2, unsigned int tamP1, unsigned int tamAcao)
+{
+	srand (time(NULL));
+	NUM_ACTION = tamAcao;
+            	qValue4p.resize(tamP4);
+            	for (unsigned int i = 0; i < tamP4; ++i)
+            	{
+            	  	qValue4p[i].resize(tamP3);
+            	  	for (unsigned int j = 0; j < tamP3; ++j) 
+            		{
+            			qValue4p[i][j].resize(tamP2);
+            			for (unsigned int k = 0; k < tamP2; ++k)
+            		  		qValue4p[i][j][k].resize(tamP1);
+            	  	}
+            	}
+	p4_size = tamP4;
+	p3_size = tamP3;
+	p2_size = tamP2;
+	p1_size = tamP1;
+}
+
+
+//---------------------------------------------------------------------------------
+void ReinforcementLearning::init_qvalues(std::vector<std::vector<double> > &qValue2p, int num_p2, int num_p1)
+{
+
+  for (int i=0;i< num_p2;i++)
+	 for (int j=0;j< num_p1;j++)
+	  	{
+	    	qValue2p[i][j] = (rand() % 100)/(float)5;
+	    	//printf("Qvalue[%d][%d][%d] = %f \n",i , j, k, qValue2p[i][j][k]);
+	 	}
+}
+//---------------------------------------------------------------------------------
+void ReinforcementLearning::init_qvalues(std::vector<std::vector<std::vector<double> > > &qValue3p, int num_p3, int num_p2, int num_p1)
+{
+  for (int i3=0;i3< num_p3;i3++)
+  	for (int i=0;i< num_p2;i++)
+	 	for (int j=0;j< num_p1;j++)
+	  		{
+	    		qValue3p[i3][i][j] = (rand() % 100)/(float)5;
+	    		//printf("Qvalue[%d][%d][%d][%d] = %f \n",i3 ,i , j, k, qValue3p[i3][i][j][k]);
+	 		}
+}
+//---------------------------------------------------------------------------------
+void ReinforcementLearning::init_qvalues(std::vector<std::vector<std::vector<std::vector<double> > > > &qValue4p, int num_p4, int num_p3, int num_p2, int num_p1)
+{
+  for (int i4=0;i4< num_p4;i4++)
+      for (int i3=0;i3< num_p3;i3++)
+    	for (int i=0;i< num_p2;i++)
+  	 	for (int j=0;j< num_p1;j++)
+  	  		{
+              	    		qValue4p[i4][i3][i][j] = (rand() % 100)/(float)5;
+              	    		//printf("Qvalue[%d][%d][%d][%d] = %f \n", i4, i3 ,i , j, qValue3p[i4][i3][i][j]);
+  	 		}
+}
+//---------------------------------------------------------------------------------
+
+//==================================================================================
+//---------------------------------------------------------------------------------
+double ReinforcementLearning::best_qvalue(std::vector<std::vector<double> > &qValue2p, int state_p2, int state_p1)
+{
+	double best_val = -1000000.0;
+	
+	if (qValue2p[state_p2][state_p1] > best_val)
+               best_val = qValue2p[state_p2][state_p1];
+     if((state_p2+1)<(p2_size))               
+	if (qValue2p[state_p2+1][state_p1] > best_val)
+               best_val = qValue2p[state_p2+1][state_p1];	
+     if((state_p1+1)<(p1_size))               
+	if (qValue2p[state_p2][state_p1+1] > best_val)
+               best_val = qValue2p[state_p2][state_p1+1];	
+     if(state_p2>0)               	
+	if (qValue2p[state_p2-1][state_p1] > best_val)
+               best_val = qValue2p[state_p2-1][state_p1];
+     if(state_p1>0)               
+	if (qValue2p[state_p2][state_p1-1] > best_val)
+               best_val = qValue2p[state_p2][state_p1-1];
+               	
+	return (best_val);
+}
+//---------------------------------------------------------------------------------
+double ReinforcementLearning::best_qvalue(std::vector<std::vector<std::vector<double> > > &qValue3p, int state_p3, int state_p2, int state_p1)
+{
+	double best_val = -1000000.0;
+
+     if((state_p3+1)<(p3_size))
+           if (qValue3p[state_p3+1][state_p2][state_p1] > best_val)
+                best_val = qValue3p[state_p3+1][state_p2][state_p1];
+     if((state_p2+1)<(p2_size))
+           if (qValue3p[state_p3][state_p2+1][state_p1] > best_val)
+                best_val = qValue3p[state_p3][state_p2+1][state_p1];
+      if((state_p1+1)<(p1_size))               
+           if (qValue3p[state_p3][state_p2][state_p1+1] > best_val)
+                best_val = qValue3p[state_p3][state_p2][state_p1+1];
+     if(state_p3>0)               
+           if (qValue3p[state_p3-1][state_p2][state_p1] > best_val)
+                best_val = qValue3p[state_p3-1][state_p2][state_p1];
+     if(state_p2>0)
+           if (qValue3p[state_p3][state_p2-1][state_p1] > best_val)
+                best_val = qValue3p[state_p3][state_p2-1][state_p1];
+     if(state_p1>0)
+           if (qValue3p[state_p3][state_p2][state_p1-1] > best_val)
+                best_val = qValue3p[state_p3][state_p2][state_p1-1];
+
+           if (qValue3p[state_p3][state_p2][state_p1] > best_val)
+                best_val = qValue3p[state_p3][state_p2][state_p1];
+
+	return (best_val);
+}
+//---------------------------------------------------------------------------------
+double ReinforcementLearning::best_qvalue(std::vector<std::vector<std::vector<std::vector<double> > > > &qValue4p, int state_p4, int state_p3, int state_p2, int state_p1)
+{
+	double best_val = -1000000.0;
+	
+	if (qValue4p[state_p4][state_p3][state_p2][state_p1] > best_val)
+                best_val = qValue4p[state_p4][state_p3][state_p2][state_p1];
+     if((state_p4+1)<(p4_size))
+	if (qValue4p[state_p4+1][state_p3][state_p2][state_p1] > best_val)
+                best_val = qValue4p[state_p4+1][state_p3][state_p2][state_p1];
+     if((state_p3+1)<(p3_size))
+	if (qValue4p[state_p4][state_p3+1][state_p2][state_p1] > best_val)
+                best_val = qValue4p[state_p4][state_p3+1][state_p2][state_p1];
+     if((state_p2+1)<(p2_size))
+	if (qValue4p[state_p4][state_p3][state_p2+1][state_p1] > best_val)
+                best_val = qValue4p[state_p4][state_p3][state_p2+1][state_p1];
+     if((state_p1+1)<(p1_size))
+	if (qValue4p[state_p4][state_p3][state_p2][state_p1+1] > best_val)
+                best_val = qValue4p[state_p4][state_p3][state_p2][state_p1+1];
+     if(state_p4>0)
+	if (qValue4p[state_p4-1][state_p3][state_p2][state_p1] > best_val)
+                best_val = qValue4p[state_p4-1][state_p3][state_p2][state_p1];
+     if(state_p3>0)
+	if (qValue4p[state_p4][state_p3-1][state_p2][state_p1] > best_val)
+                best_val = qValue4p[state_p4][state_p3-1][state_p2][state_p1];
+     if(state_p2>0)
+	if (qValue4p[state_p4][state_p3][state_p2-1][state_p1] > best_val)
+                best_val = qValue4p[state_p4][state_p3][state_p2-1][state_p1];
+     if(state_p1>0)
+	if (qValue4p[state_p4][state_p3][state_p2][state_p1-1] > best_val)
+                best_val = qValue4p[state_p4][state_p3][state_p2][state_p1-1];
+
+	return (best_val);
+}
+
+//===================================================================================
+//---------------------------------------------------------------------------------
+int ReinforcementLearning::best_qvalue_action(std::vector<std::vector<double> > &qValue2p, int state_p2, int state_p1)
+{
+	double best_val = -100000.0;
+
+     if((state_p1+1)<(p1_size))
+	if (qValue2p[state_p2][state_p1+1] > best_val)
+	{
+               best_val = qValue2p[state_p2][state_p1+1];
+               act = 0;
+           }              
+     if((state_p2+1)<(p2_size))
+	if (qValue2p[state_p2+1][state_p1] > best_val)
+	{
+               best_val = qValue2p[state_p2+1][state_p1];
+               act = 1;	
+           }
+     if(state_p1>0)	
+	if (qValue2p[state_p2][state_p1-1] > best_val)
+	{
+               best_val = qValue2p[state_p2][state_p1-1];
+               act = 2;
+         }
+     if(state_p2>0)          	
+	if (qValue2p[state_p2-1][state_p1] > best_val)
+	{
+               best_val = qValue2p[state_p2-1][state_p1];
+               act = 3;
+         }
+	if (qValue2p[state_p2][state_p1] > best_val)
+	{
+               best_val = qValue2p[state_p2][state_p1];
+               act = 4;
+           }
+               
+	return (act);
+}
+//---------------------------------------------------------------------------------
+int ReinforcementLearning::best_qvalue_action(std::vector<std::vector<std::vector<double> > > &qValue3p, int state_p3, int state_p2, int state_p1)
+{
+	double best_val = -100000.0;
+
+     if((state_p1+1)<(p1_size))
+           if (qValue3p[state_p3][state_p2][state_p1+1] > best_val)
+           {
+                best_val = qValue3p[state_p3][state_p2][state_p1+1];
+                act = 0;
+           }
+     if((state_p2+1)<(p2_size))
+           if (qValue3p[state_p3][state_p2+1][state_p1] > best_val)
+           {
+                best_val = qValue3p[state_p3][state_p2+1][state_p1];
+                act = 1;
+           }
+     if((state_p3+1)<(p3_size))
+           if (qValue3p[state_p3+1][state_p2][state_p1] > best_val)
+           {
+                best_val = qValue3p[state_p3+1][state_p2][state_p1];
+                act = 2;
+           }
+     if(state_p1>0)
+           if (qValue3p[state_p3][state_p2][state_p1-1] > best_val)
+           {
+                best_val = qValue3p[state_p3][state_p2][state_p1-1];
+                act = 3;
+           }
+     if(state_p2>0)
+           if (qValue3p[state_p3][state_p2-1][state_p1] > best_val)
+           {
+                best_val = qValue3p[state_p3][state_p2-1][state_p1];
+                act = 4;
+           }
+     if(state_p3>0)              
+           if (qValue3p[state_p3-1][state_p2][state_p1] > best_val)
+           {
+                best_val = qValue3p[state_p3-1][state_p2][state_p1];
+                act = 5;
+           }
+           if (qValue3p[state_p3][state_p2][state_p1] > best_val)
+           {
+                best_val = qValue3p[state_p3][state_p2][state_p1];
+                act = 6;
+           }
+
+	return (act);
+}
+//---------------------------------------------------------------------------------
+int ReinforcementLearning::best_qvalue_action(std::vector<std::vector<std::vector<std::vector<double> > > > &qValue4p, int state_p4, int state_p3, int state_p2, int state_p1)
+{
+	double best_val = -100000.0;
+     if((state_p1+1)<(p1_size))
+	if (qValue4p[state_p4][state_p3][state_p2][state_p1+1] > best_val)
+           {
+                best_val = qValue4p[state_p4][state_p3][state_p2][state_p1+1];
+                act = 0;
+           }
+     if((state_p2+1)<(p2_size))
+	if (qValue4p[state_p4][state_p3][state_p2+1][state_p1] > best_val)
+           {
+                best_val = qValue4p[state_p4][state_p3][state_p2+1][state_p1];
+                act = 1;
+           }
+     if((state_p3+1)<(p3_size))
+	if (qValue4p[state_p4][state_p3+1][state_p2][state_p1] > best_val)
+           {
+                best_val = qValue4p[state_p4][state_p3+1][state_p2][state_p1];
+                act = 2;
+           }
+     if((state_p4+1)<(p4_size))
+	if (qValue4p[state_p4+1][state_p3][state_p2][state_p1] > best_val)
+	{
+                best_val = qValue4p[state_p4+1][state_p3][state_p2][state_p1];
+                act = 3;
+           }
+     if(state_p1>0)
+	if (qValue4p[state_p4][state_p3][state_p2][state_p1-1] > best_val)
+	{
+                best_val = qValue4p[state_p4][state_p3][state_p2][state_p1-1];
+                act = 4;
+           }
+     if(state_p2>0)
+	if (qValue4p[state_p4][state_p3][state_p2-1][state_p1] > best_val)
+	{
+                best_val = qValue4p[state_p4][state_p3][state_p2-1][state_p1];
+                act = 5;
+           }
+     if(state_p3>0)
+	if (qValue4p[state_p4][state_p3-1][state_p2][state_p1] > best_val)
+	{
+                best_val = qValue4p[state_p4][state_p3-1][state_p2][state_p1];
+                act = 6;
+           }
+     if(state_p4>0)
+	if (qValue4p[state_p4-1][state_p3][state_p2][state_p1] > best_val)
+	{
+                best_val = qValue4p[state_p4-1][state_p3][state_p2][state_p1];
+                act = 7;
+           }
+	if (qValue4p[state_p4][state_p3][state_p2][state_p1] > best_val)
+	{
+                best_val = qValue4p[state_p4][state_p3][state_p2][state_p1];
+                act = 8;
+           }
+	return (act);
+}
+
+//====================================================================================
+//------------------------------------------------------------------------------------
+int ReinforcementLearning::choose_best_action_egreedy(std::vector<std::vector<double> > &qValue2p, int state_p2, int state_p1)
+{
+  double rvalue;
+
+  rvalue = (rand() % 1000)/1000;
+
+  if (rvalue < EXPLORATION_THRESHOLD)
+    act = rand() % NUM_ACTION;
+  else 
+    act = best_qvalue_action(qValue2p, state_p2, state_p1);
+  return (act);
+}
+//---------------------------------------------------------------------------------
+int ReinforcementLearning::choose_best_action_egreedy(std::vector<std::vector<std::vector<double> > > &qValue3p, int state_p3, int state_p2, int state_p1)
+{
+  double rvalue;
+
+  rvalue = (rand() % 1000)/1000;
+
+  if (rvalue < EXPLORATION_THRESHOLD)
+    act = rand() % NUM_ACTION;
+  else 
+    act = best_qvalue_action(qValue3p, state_p3, state_p2, state_p1);
+  return (act);
+}
+//---------------------------------------------------------------------------------
+int ReinforcementLearning::choose_best_action_egreedy(std::vector<std::vector<std::vector<std::vector<double> > > > &qValue4p, int state_p4, int state_p3, int state_p2, int state_p1)
+{
+  double rvalue;
+
+  rvalue = (rand() % 1000)/(float)1000;
+	printf(" random = %f", rvalue);
+  if (rvalue < EXPLORATION_THRESHOLD)
+    act = rand() % NUM_ACTION;
+  else 
+    act = best_qvalue_action(qValue4p, state_p4, state_p3, state_p2, state_p1);
+  return (act);
+} 
+
